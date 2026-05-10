@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-const Sidebar = ({ documents, activeDoc, setActiveDoc, onDelete, onNewSession }) => {
+const Sidebar = ({ documents, activeDoc, setActiveDoc, onDelete, onNewSession, onOpenSettings }) => {
   return (
     <aside className="w-72 border-r border-gray-200 dark:border-gray-800 flex flex-col glass relative z-20">
       <div className="p-6">
@@ -108,10 +108,14 @@ const Sidebar = ({ documents, activeDoc, setActiveDoc, onDelete, onNewSession })
           </button>
         </div>
         
-        <div className="mt-4 flex items-center gap-3 px-3 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800/50 rounded-xl cursor-pointer transition-all">
+        <button
+          type="button"
+          onClick={onOpenSettings}
+          className="mt-4 w-full flex items-center gap-3 px-3 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800/50 rounded-xl cursor-pointer transition-all"
+        >
           <Settings size={18} />
           <span className="text-sm font-medium">Settings</span>
-        </div>
+        </button>
       </div>
     </aside>
   );

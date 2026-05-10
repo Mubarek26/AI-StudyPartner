@@ -1,4 +1,5 @@
 const { GoogleGenAI } = require("@google/genai");
+const Groq = require("groq-sdk");
 const axios = require("axios");
 const { Chunk } = require("../models/Chunk");
 
@@ -8,7 +9,11 @@ if (!apiKey) {
 }
 
 const genAI = new GoogleGenAI({ apiKey: apiKey || "", apiVersion: "v1" });
-const modelName = process.env.GEMINI_QUIZ_MODEL || "gemini-1.5-flash";
+const geminiModelName = process.env.GEMINI_QUIZ_MODEL || "gemini-1.5-flash";
+const groqApiKey = process.env.GROQ_API_KEY;
+const groqModelName = process.env.GROQ_QUIZ_MODEL || "llama-3.1-8b-instant";
+const GroqClient = Groq?.default || Groq;
+const groqClient = groqApiKey ? new GroqClient({ apiKey: groqApiKey }) : null;
 let cachedQuizModels = null;
 
 const quizSchema = {
@@ -112,7 +117,7 @@ const extractJsonFromText = (rawText) => {
   }
 };
 
-const generateQuiz = async ({ documentId, numQuestions = 8, numChunks = 6 }) => {
+const generateQuiz = async ({ documentId, numQuestions = 8, numChunks = 6, provider = "gemini" }) => {
   if (!documentId) {
     const error = new Error("documentId is required");
     error.status = 400;
@@ -126,12 +131,35 @@ const generateQuiz = async ({ documentId, numQuestions = 8, numChunks = 6 }) => 
     throw error;
   }
 
-  const result = await genAI.models.generateContent({
-    model: modelName,
-    contents: buildPrompt(contextText, numQuestions)
-  });
+  const selectedProvider = `${provider || "gemini"}`.trim().toLowerCase();
+  let rawText = "";
 
-  const rawText = result?.text || "";
+  if (selectedProvider === "groq") {
+    if (!groqClient) {
+      const error = new Error("GROQ_API_KEY is not set");
+      error.status = 500;
+      throw error;
+    }
+
+    const result = await groqClient.chat.completions.create({
+      model: groqModelName,
+      messages: [{ role: "user", content: buildPrompt(contextText, numQuestions) }]
+    });
+
+    rawText = result?.choices?.[0]?.message?.content || "";
+  } else if (selectedProvider === "gemini") {
+    const result = await genAI.models.generateContent({
+      model: geminiModelName,
+      contents: buildPrompt(contextText, numQuestions)
+    });
+
+    rawText = result?.text || "";
+  } else {
+    const error = new Error(`Unsupported provider: ${selectedProvider}`);
+    error.status = 400;
+    throw error;
+  }
+
   const json = extractJsonFromText(rawText);
 
   if (!json) {

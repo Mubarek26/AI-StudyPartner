@@ -5,8 +5,8 @@ const router = express.Router();
 
 router.post("/quiz", async (req, res) => {
   try {
-    const { documentId, numQuestions, numChunks } = req.body || {};
-    const quiz = await generateQuiz({ documentId, numQuestions, numChunks });
+    const { documentId, numQuestions, numChunks, provider } = req.body || {};
+    const quiz = await generateQuiz({ documentId, numQuestions, numChunks, provider });
     res.json(quiz);
   } catch (error) {
     const status = error.status || 500;

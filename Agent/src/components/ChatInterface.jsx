@@ -12,9 +12,10 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const API_BASE_URL = 'http://localhost:4000';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000';
 
-const ChatInterface = ({ activeDoc }) => {
+const ChatInterface = ({ activeDoc, provider }) => {
+  const providerLabel = provider === 'groq' ? 'Groq' : 'Gemini';
   const [messages, setMessages] = useState([
     { 
       id: 1, 
@@ -29,6 +30,7 @@ const ChatInterface = ({ activeDoc }) => {
   const [quizError, setQuizError] = useState(null);
   const [showAnswers, setShowAnswers] = useState(false);
   const [isSending, setIsSending] = useState(false);
+  const [providerUsed, setProviderUsed] = useState(null);
   const chatEndRef = useRef(null);
 
   const scrollToBottom = () => {
@@ -72,7 +74,12 @@ const ChatInterface = ({ activeDoc }) => {
       const response = await fetch(`${API_BASE_URL}/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: userMessage.content, documentId: activeDoc.id, history })
+        body: JSON.stringify({
+          message: userMessage.content,
+          documentId: activeDoc.id,
+          history,
+          provider: (provider || 'gemini').toLowerCase()
+        })
       });
 
       if (!response.ok) {
@@ -82,6 +89,9 @@ const ChatInterface = ({ activeDoc }) => {
       }
 
       const payload = await response.json();
+      if (payload.providerUsed) {
+        setProviderUsed(payload.providerUsed);
+      }
       const assistantMessage = {
         id: Date.now() + 1,
         role: 'assistant',
@@ -114,7 +124,7 @@ const ChatInterface = ({ activeDoc }) => {
       const response = await fetch(`${API_BASE_URL}/api/quiz`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ documentId: activeDoc.id })
+        body: JSON.stringify({ documentId: activeDoc.id, provider: (provider || 'gemini').toLowerCase() })
       });
 
       if (!response.ok) {
@@ -146,7 +156,9 @@ const ChatInterface = ({ activeDoc }) => {
               Study AI
               <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
             </h3>
-            <p className="text-[10px] text-gray-500 dark:text-gray-400 font-medium">Always online</p>
+            <p className="text-[10px] text-gray-500 dark:text-gray-400 font-medium">
+              Always online • {providerLabel}{providerUsed ? ` (using ${providerUsed})` : ''}
+            </p>
           </div>
         </div>
         

@@ -6,6 +6,8 @@ const { chunkText } = require("../services/chunk");
 const { embedText, listEmbeddingModels } = require("../services/embeddings");
 const { Document } = require("../models/Document");
 const { Chunk } = require("../models/Chunk");
+const { sendTelegramMessage } = require("../services/telegram");
+const { sendDailyTip } = require("../services/dailyTips");
 const mongoose = require("mongoose");
 
 const router = express.Router();
@@ -42,11 +44,17 @@ router.post("/ingest", upload.single("file"), async (req, res) => {
     });
 
     const chunks = chunkText(cleanText, { chunkSize: 1200, chunkOverlap: 150 });
+    const selectedProvider = `${req.body?.provider || "gemini"}`.trim().toLowerCase();
 
     const chunkDocs = [];
     for (let i = 0; i < chunks.length; i += 1) {
       const text = chunks[i];
-      const embedding = await embedText(text);
+      let embedding = [];
+
+      if (selectedProvider !== "groq") {
+        embedding = await embedText(text);
+      }
+
       chunkDocs.push({
         documentId: doc._id,
         index: i,
@@ -61,6 +69,12 @@ router.post("/ingest", upload.single("file"), async (req, res) => {
       documentId: doc._id,
       chunks: chunkDocs.length,
       cloudinaryUrl: uploadResult.secure_url
+    });
+
+    const sizeMb = (doc.sizeBytes / (1024 * 1024)).toFixed(2);
+    const message = `New document uploaded:\n- Name: ${doc.filename}\n- Pages: ${doc.pages}\n- Size: ${sizeMb} MB`;
+    sendTelegramMessage(message).catch((error) => {
+      console.warn("Telegram notify failed", error.message);
     });
   } catch (error) {
     console.error("Ingest error", error);
@@ -78,6 +92,60 @@ router.get("/documents", async (req, res) => {
   } catch (error) {
     console.error("List documents error", error);
     res.status(500).json({ error: "Failed to list documents" });
+  }
+});
+
+router.get("/documents/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ error: "Invalid document id" });
+    }
+
+    const doc = await Document.findById(id).lean();
+    if (!doc) {
+      return res.status(404).json({ error: "Document not found" });
+    }
+
+    res.json({ document: doc });
+  } catch (error) {
+    console.error("Get document error", error);
+    res.status(500).json({ error: "Failed to fetch document" });
+  }
+});
+
+router.get("/documents/:id/pdf", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ error: "Invalid document id" });
+    }
+
+    const doc = await Document.findById(id).lean();
+    if (!doc) {
+      return res.status(404).json({ error: "Document not found" });
+    }
+
+    const pdfBuffer = await downloadPdfBuffer(doc.cloudinaryUrl);
+
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", "inline");
+    res.send(pdfBuffer);
+  } catch (error) {
+    console.error("Fetch PDF error", error);
+    res.status(500).json({ error: "Failed to fetch PDF" });
+  }
+});
+
+router.post("/tips/send", async (req, res) => {
+  try {
+    await sendDailyTip();
+    res.json({ ok: true });
+  } catch (error) {
+    console.error("Send tip error", error);
+    res.status(500).json({ error: "Failed to send tip" });
   }
 });
 
@@ -145,6 +213,12 @@ router.post("/ingest-url", async (req, res) => {
       documentId: doc._id,
       chunks: chunkDocs.length,
       cloudinaryUrl: url
+    });
+
+    const sizeMb = (doc.sizeBytes / (1024 * 1024)).toFixed(2);
+    const message = `New document uploaded:\n- Name: ${doc.filename}\n- Pages: ${doc.pages}\n- Size: ${sizeMb} MB`;
+    sendTelegramMessage(message).catch((error) => {
+      console.warn("Telegram notify failed", error.message);
     });
   } catch (error) {
     console.error("Ingest URL error", error);

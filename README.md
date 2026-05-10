@@ -54,3 +54,4 @@ Frontend runs on Vite default port. Backend defaults to `http://localhost:4000`.
 - `POST /api/quiz`
 - `GET /api/quiz-models`
 - `POST /chat` (json: `{ "message": "...", "documentId": "...", "history": [...] }`)
+- `POST /api/tips/send` (manual trigger for Telegram tip)

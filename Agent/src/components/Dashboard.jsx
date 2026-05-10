@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   BookOpen, 
   Upload, 
@@ -20,13 +21,19 @@ import FileUpload from './FileUpload';
 import PDFViewer from './PDFViewer';
 import ChatInterface from './ChatInterface';
 
-const API_BASE_URL = 'http://localhost:4000';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000';
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [activeDoc, setActiveDoc] = useState(null);
   const [documents, setDocuments] = useState([]);
   const [sessionKey, setSessionKey] = useState(0);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [chatProvider, setChatProvider] = useState(() => {
+    const saved = localStorage.getItem('chatProvider');
+    return saved || 'gemini';
+  });
 
   useEffect(() => {
     if (isDarkMode) {
@@ -35,6 +42,10 @@ const Dashboard = () => {
       document.documentElement.classList.remove('dark');
     }
   }, [isDarkMode]);
+
+  useEffect(() => {
+    localStorage.setItem('chatProvider', chatProvider);
+  }, [chatProvider]);
 
   useEffect(() => {
     let isMounted = true;
@@ -100,6 +111,20 @@ const Dashboard = () => {
     setSessionKey((prev) => prev + 1);
   };
 
+  const handleOpenSettings = () => {
+    setIsSettingsOpen(true);
+  };
+
+  const handleCloseSettings = () => {
+    setIsSettingsOpen(false);
+  };
+
+  const handleOpenReader = () => {
+    if (activeDoc?.id) {
+      navigate(`/reader/${activeDoc.id}`);
+    }
+  };
+
   const handleDelete = async (docId) => {
     if (!docId) {
       return;
@@ -138,6 +163,7 @@ const Dashboard = () => {
         setActiveDoc={setActiveDoc}
         onDelete={handleDelete}
         onNewSession={handleNewSession}
+        onOpenSettings={handleOpenSettings}
       />
 
       {/* Main Content */}
@@ -180,23 +206,63 @@ const Dashboard = () => {
         <div className="flex-1 flex flex-col p-6 gap-6 overflow-hidden">
           {/* Top Section: Upload Zone */}
           <section className="h-1/3 min-h-[200px]">
-            <FileUpload onUploaded={handleUploaded} />
+            <FileUpload onUploaded={handleUploaded} provider={chatProvider} />
           </section>
 
           {/* Bottom Section: Split Screen */}
           <section className="flex-1 flex gap-6 min-h-0">
             {/* Left side: PDF Viewer */}
             <div className="w-3/5 flex flex-col glass-card overflow-hidden">
-              <PDFViewer document={activeDoc} />
+              <PDFViewer document={activeDoc} onOpenReader={handleOpenReader} />
             </div>
 
             {/* Right side: Chat Interface */}
             <div className="w-2/5 flex flex-col glass-card overflow-hidden">
-              <ChatInterface key={sessionKey} activeDoc={activeDoc} />
+              <ChatInterface key={sessionKey} activeDoc={activeDoc} provider={chatProvider} />
             </div>
           </section>
         </div>
       </main>
+
+      {isSettingsOpen && (
+        <div className="absolute inset-0 z-30 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-2xl bg-white dark:bg-[#0f0f0f] border border-gray-200 dark:border-gray-800 shadow-2xl p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-bold dark:text-white">Settings</h2>
+              <button
+                type="button"
+                onClick={handleCloseSettings}
+                className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              >
+                Close
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              <p className="text-xs uppercase tracking-wide text-gray-400">Chat Provider</p>
+              <div className="flex gap-3">
+                {['gemini', 'groq'].map((provider) => (
+                  <button
+                    key={provider}
+                    type="button"
+                    onClick={() => setChatProvider(provider)}
+                    className={`flex-1 rounded-xl border px-4 py-3 text-sm font-semibold transition-all
+                      ${chatProvider === provider
+                        ? 'border-academic-500 bg-academic-50 text-academic-700 dark:bg-academic-500/10 dark:text-academic-300'
+                        : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300 dark:border-gray-800 dark:bg-[#111] dark:text-gray-300'}
+                    `}
+                  >
+                    {provider === 'gemini' ? 'Gemini' : 'Groq'}
+                  </button>
+                ))}
+              </div>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                The selected provider is used for document Q&A.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

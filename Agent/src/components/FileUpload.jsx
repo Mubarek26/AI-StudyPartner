@@ -2,9 +2,9 @@ import React, { useRef, useState } from 'react';
 import { Upload, File, X, CheckCircle2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const API_BASE_URL = 'http://localhost:4000';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000';
 
-const FileUpload = ({ onUploaded }) => {
+const FileUpload = ({ onUploaded, provider }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [file, setFile] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -53,6 +53,7 @@ const FileUpload = ({ onUploaded }) => {
     try {
       const formData = new FormData();
       formData.append('file', file);
+      formData.append('provider', (provider || 'gemini').toLowerCase());
 
       const response = await fetch(`${API_BASE_URL}/api/ingest`, {
         method: 'POST',

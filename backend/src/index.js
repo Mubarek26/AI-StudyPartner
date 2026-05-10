@@ -9,6 +9,7 @@ const ingestRouter = require("./routes/ingest");
 const chatRouter = require("./routes/chat");
 const quizRouter = require("./routes/quizRoutes");
 const { connectMongo } = require("./db/mongo");
+const { startDailyTips } = require("./services/dailyTips");
 
 const app = express();
 
@@ -27,6 +28,7 @@ const port = process.env.PORT || 4000;
 
 connectMongo()
   .then(() => {
+    startDailyTips();
     app.listen(port, () => {
       console.log(`Backend listening on port ${port}`);
     });
