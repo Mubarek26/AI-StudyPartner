@@ -38,6 +38,9 @@ Study Agent is a full-stack app for uploading PDFs, chatting with a tutor about 
 1. Start backend:
    - `cd backend`
    - `npm run dev`
+2. Start worker (daily tips):
+   - `cd backend`
+   - `npm run worker`
 2. Start frontend:
    - `cd Agent`
    - `npm run dev`
