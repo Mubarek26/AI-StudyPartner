@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
+    "postinstall": "npm install --prefix backend",
     "worker": "npm run worker --prefix backend",
     "backend": "npm start --prefix backend",
     "frontend": "npm run dev --prefix Agent",
