@@ -4,11 +4,15 @@
   "private": true,
   "scripts": {
     "postinstall": "npm install --prefix backend",
+    "start": "npm run backend",
     "worker": "npm run worker --prefix backend",
     "backend": "npm start --prefix backend",
     "frontend": "npm run dev --prefix Agent",
     "install:backend": "npm install --prefix backend",
     "install:frontend": "npm install --prefix Agent",
     "build:frontend": "npm run build --prefix Agent"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5"
   }
 }
