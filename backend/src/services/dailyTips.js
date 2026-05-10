@@ -139,6 +139,15 @@ const pickEmoji = (text) => {
   return "✨";
 };
 
+const xmlEscape = (str) => {
+  return (str || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&apos;");
+};
+
 const buildTipBanner = async (title, excerpt) => {
   const width = 1200;
   const height = 630;
@@ -150,11 +159,11 @@ const buildTipBanner = async (title, excerpt) => {
   const emoji = pickEmoji(safeExcerpt || safeTitle);
 
   const titleSvg = titleLines
-    .map((line, idx) => `<text x="96" y="${190 + idx * 56}" font-size="44" font-weight="700" fill="#111827">${line}</text>`)
+    .map((line, idx) => `<text x="96" y="${190 + idx * 56}" font-size="44" font-weight="700" fill="#111827">${xmlEscape(line)}</text>`)
     .join("");
 
   const excerptSvg = excerptLines
-    .map((line, idx) => `<text x="96" y="${320 + idx * 40}" font-size="28" fill="#1f2937">${line}</text>`)
+    .map((line, idx) => `<text x="96" y="${320 + idx * 40}" font-size="28" fill="#1f2937">${xmlEscape(line)}</text>`)
     .join("");
 
   const svg = `
@@ -239,7 +248,14 @@ ${contextText}`;
 };
 
 const sendDailyTip = async () => {
-  const doc = await Document.findOne({}).sort({ createdAt: -1 }).lean();
+  const count = await Document.countDocuments({});
+  if (count === 0) {
+    return;
+  }
+
+  const skip = Math.floor(Math.random() * count);
+  const doc = await Document.findOne({}).skip(skip).lean();
+  
   if (!doc) {
     return;
   }

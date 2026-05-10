@@ -71,7 +71,7 @@ const DocReader = () => {
           </div>
         </header>
 
-        <div className="flex-1 flex flex-col p-6 gap-6 overflow-hidden">
+        <div className="flex-1 flex flex-col p-4 md:p-6 gap-4 md:gap-6 overflow-y-auto lg:overflow-hidden">
           {status === 'loading' && (
             <div className="flex-1 flex items-center justify-center text-sm text-gray-500 dark:text-gray-400">
               Loading document...
@@ -85,11 +85,11 @@ const DocReader = () => {
           )}
 
           {status === 'ready' && (
-            <section className="flex-1 flex gap-6 min-h-0">
-              <div className="w-3/5 flex flex-col glass-card overflow-hidden">
+            <section className="flex-1 flex flex-col lg:flex-row gap-4 md:gap-6 min-h-0">
+              <div className="w-full lg:w-3/5 h-[500px] lg:h-full flex flex-col glass-card overflow-hidden">
                 <PDFViewer document={document} />
               </div>
-              <div className="w-2/5 flex flex-col glass-card overflow-hidden">
+              <div className="w-full lg:w-2/5 h-[500px] lg:h-full flex flex-col glass-card overflow-hidden">
                 <ChatInterface activeDoc={document} provider={provider} />
               </div>
             </section>

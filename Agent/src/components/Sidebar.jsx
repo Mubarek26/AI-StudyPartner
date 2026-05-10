@@ -1,4 +1,3 @@
-import React from 'react';
 import { 
   Files, 
   Settings, 
@@ -8,21 +7,28 @@ import {
   Star,
   Trash2,
   MoreVertical,
-  Zap
+  Zap,
+  X
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-const Sidebar = ({ documents, activeDoc, setActiveDoc, onDelete, onNewSession, onOpenSettings }) => {
+const Sidebar = ({ documents, activeDoc, setActiveDoc, onDelete, onNewSession, onOpenSettings, onClose }) => {
   return (
-    <aside className="w-72 border-r border-gray-200 dark:border-gray-800 flex flex-col glass relative z-20">
-      <div className="p-6">
+    <aside className="w-72 h-full border-r border-gray-200 dark:border-gray-800 flex flex-col glass relative">
+      <div className="p-6 flex items-center justify-between">
         <button
-          className="w-full btn-primary group"
+          className="flex-1 btn-primary group"
           type="button"
           onClick={onNewSession}
         >
           <Plus size={18} className="group-hover:rotate-90 transition-transform duration-300" />
           <span>New Session</span>
+        </button>
+        <button 
+          onClick={onClose}
+          className="ml-2 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 lg:hidden text-gray-500"
+        >
+          <X size={20} />
         </button>
       </div>
 

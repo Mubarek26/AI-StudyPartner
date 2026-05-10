@@ -8,7 +8,7 @@ const { startDailyTips } = require("./services/dailyTips");
 
 const express = require("express");
 const app = express();
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT || 4001;
 
 // Dummy endpoint to satisfy Render's health checks
 app.get("/", (req, res) => res.send("Worker is running..."));

@@ -35,6 +35,8 @@ const Dashboard = () => {
     return saved || 'gemini';
   });
 
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
   useEffect(() => {
     if (isDarkMode) {
       document.documentElement.classList.add('dark');
@@ -155,47 +157,75 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="flex h-screen bg-gray-50 dark:bg-[#050505] transition-colors duration-500 overflow-hidden font-sans">
+    <div className="flex h-screen bg-gray-50 dark:bg-[#050505] transition-colors duration-500 overflow-hidden font-sans relative">
+      {/* Sidebar - Mobile Overlay */}
+      <AnimatePresence>
+        {isSidebarOpen && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setIsSidebarOpen(false)}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
+          />
+        )}
+      </AnimatePresence>
+
       {/* Sidebar */}
-      <Sidebar 
-        documents={documents} 
-        activeDoc={activeDoc} 
-        setActiveDoc={setActiveDoc}
-        onDelete={handleDelete}
-        onNewSession={handleNewSession}
-        onOpenSettings={handleOpenSettings}
-      />
+      <div className={`
+        fixed inset-y-0 left-0 z-50 transform transition-transform duration-300 lg:relative lg:translate-x-0
+        ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+      `}>
+        <Sidebar 
+          documents={documents} 
+          activeDoc={activeDoc} 
+          setActiveDoc={(doc) => {
+            setActiveDoc(doc);
+            setIsSidebarOpen(false);
+          }}
+          onDelete={handleDelete}
+          onNewSession={handleNewSession}
+          onOpenSettings={handleOpenSettings}
+          onClose={() => setIsSidebarOpen(false)}
+        />
+      </div>
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
         {/* Header */}
-        <header className="h-16 flex items-center justify-between px-8 border-b border-gray-200 dark:border-gray-800 glass z-10">
+        <header className="h-16 flex items-center justify-between px-4 md:px-8 border-b border-gray-200 dark:border-gray-800 glass z-10">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-academic-600 flex items-center justify-center text-white shadow-lg shadow-academic-500/30">
-              <BookOpen size={22} />
+            <button 
+              onClick={() => setIsSidebarOpen(true)}
+              className="p-2 -ml-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 lg:hidden text-gray-600 dark:text-gray-400"
+            >
+              <MoreVertical size={20} />
+            </button>
+            <div className="w-9 h-9 md:w-10 md:h-10 rounded-xl bg-academic-600 flex items-center justify-center text-white shadow-lg shadow-academic-500/30">
+              <BookOpen size={20} className="md:w-5 md:h-5" />
             </div>
-            <div>
-              <h1 className="text-xl font-bold tracking-tight dark:text-white">StudyPartner AI</h1>
-              <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">Your personal academic assistant</p>
+            <div className="hidden sm:block">
+              <h1 className="text-lg md:text-xl font-bold tracking-tight dark:text-white leading-tight">StudyPartner AI</h1>
+              <p className="text-[10px] md:text-xs text-gray-500 dark:text-gray-400 font-medium">Your academic assistant</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
-            <div className="relative hidden md:block">
+          <div className="flex items-center gap-2 md:gap-4">
+            <div className="relative hidden lg:block">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
               <input 
                 type="text" 
-                placeholder="Search documents or notes..." 
-                className="pl-10 pr-4 py-2 bg-gray-100 dark:bg-gray-900/50 border-none rounded-xl text-sm focus:ring-2 focus:ring-academic-500 transition-all outline-none w-64"
+                placeholder="Search..." 
+                className="pl-10 pr-4 py-2 bg-gray-100 dark:bg-gray-900/50 border-none rounded-xl text-sm focus:ring-2 focus:ring-academic-500 transition-all outline-none w-48 xl:w-64"
               />
             </div>
             <button 
               onClick={toggleTheme}
-              className="p-2.5 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-800"
+              className="p-2 md:p-2.5 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-800"
             >
-              {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
+              {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
             </button>
-            <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-academic-500 to-indigo-600 p-0.5 cursor-pointer">
+            <div className="w-9 h-9 md:w-10 md:h-10 rounded-full bg-gradient-to-tr from-academic-500 to-indigo-600 p-0.5 cursor-pointer">
               <div className="w-full h-full rounded-full border-2 border-white dark:border-gray-950 overflow-hidden">
                 <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" alt="User" />
               </div>
@@ -203,21 +233,21 @@ const Dashboard = () => {
           </div>
         </header>
 
-        <div className="flex-1 flex flex-col p-6 gap-6 overflow-hidden">
+        <div className="flex-1 flex flex-col p-4 md:p-6 gap-4 md:gap-6 overflow-y-auto lg:overflow-hidden">
           {/* Top Section: Upload Zone */}
-          <section className="h-1/3 min-h-[200px]">
+          <section className="min-h-[180px] lg:h-1/3">
             <FileUpload onUploaded={handleUploaded} provider={chatProvider} />
           </section>
 
           {/* Bottom Section: Split Screen */}
-          <section className="flex-1 flex gap-6 min-h-0">
+          <section className="flex-1 flex flex-col lg:flex-row gap-4 md:gap-6 min-h-0">
             {/* Left side: PDF Viewer */}
-            <div className="w-3/5 flex flex-col glass-card overflow-hidden">
+            <div className="w-full lg:w-3/5 h-[500px] lg:h-full flex flex-col glass-card overflow-hidden">
               <PDFViewer document={activeDoc} onOpenReader={handleOpenReader} />
             </div>
 
             {/* Right side: Chat Interface */}
-            <div className="w-2/5 flex flex-col glass-card overflow-hidden">
+            <div className="w-full lg:w-2/5 h-[500px] lg:h-full flex flex-col glass-card overflow-hidden">
               <ChatInterface key={sessionKey} activeDoc={activeDoc} provider={chatProvider} />
             </div>
           </section>

@@ -146,9 +146,9 @@ const ChatInterface = ({ activeDoc, provider }) => {
   return (
     <div className="flex flex-col h-full bg-white dark:bg-[#0a0a0a] relative">
       {/* Chat Header */}
-      <div className="h-14 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between px-6 bg-white dark:bg-gray-900/30">
+      <div className="h-14 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between px-4 md:px-6 bg-white dark:bg-gray-900/30 shrink-0">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-academic-100 dark:bg-academic-500/20 text-academic-600 dark:text-academic-400 flex items-center justify-center">
+          <div className="hidden sm:flex w-8 h-8 rounded-lg bg-academic-100 dark:bg-academic-500/20 text-academic-600 dark:text-academic-400 items-center justify-center">
             <Bot size={18} />
           </div>
           <div>
@@ -156,25 +156,25 @@ const ChatInterface = ({ activeDoc, provider }) => {
               Study AI
               <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
             </h3>
-            <p className="text-[10px] text-gray-500 dark:text-gray-400 font-medium">
-              Always online • {providerLabel}{providerUsed ? ` (using ${providerUsed})` : ''}
+            <p className="text-[10px] text-gray-500 dark:text-gray-400 font-medium truncate max-w-[100px] sm:max-w-none">
+              {providerLabel}{providerUsed ? ` (${providerUsed})` : ''}
             </p>
           </div>
         </div>
         
         <button
-          className="btn-primary py-1.5 px-3 text-xs bg-gradient-to-r from-academic-600 to-indigo-600 border-none shadow-academic-500/30"
+          className="btn-primary py-1.5 px-2 md:px-3 text-[10px] md:text-xs bg-gradient-to-r from-academic-600 to-indigo-600 border-none shadow-academic-500/30"
           onClick={handleGenerateQuiz}
           disabled={!activeDoc?.id || isGeneratingQuiz}
           title={!activeDoc?.id ? 'Upload a document first' : 'Generate a quiz'}
         >
-          <BrainCircuit size={14} />
-          {isGeneratingQuiz ? 'Generating...' : 'Generate Quiz'}
+          <BrainCircuit size={14} className="hidden xs:block" />
+          {isGeneratingQuiz ? 'Wait...' : 'Quiz'}
         </button>
       </div>
 
       {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
+      <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4 md:space-y-6 custom-scrollbar">
         {quizError && (
           <div className="rounded-2xl border border-red-200 bg-red-50 text-red-600 text-sm px-4 py-3">
             {quizError}
@@ -182,42 +182,42 @@ const ChatInterface = ({ activeDoc, provider }) => {
         )}
 
         {quiz && (
-          <div className="rounded-2xl border border-academic-200 dark:border-academic-500/30 bg-academic-50/60 dark:bg-academic-900/20 p-5 space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs uppercase tracking-wide text-gray-500">Quiz</p>
-                <h4 className="text-sm font-bold dark:text-white">{quiz.title || 'Practice Quiz'}</h4>
+          <div className="rounded-2xl border border-academic-200 dark:border-academic-500/30 bg-academic-50/60 dark:bg-academic-900/20 p-4 md:p-5 space-y-4">
+            <div className="flex items-center justify-between gap-2">
+              <div className="min-w-0">
+                <p className="text-[10px] uppercase tracking-wide text-gray-500">Quiz</p>
+                <h4 className="text-sm font-bold dark:text-white truncate">{quiz.title || 'Practice Quiz'}</h4>
               </div>
               <button
-                className="btn-secondary text-xs py-1.5"
+                className="btn-secondary text-[10px] py-1 px-2 shrink-0"
                 onClick={() => setShowAnswers((prev) => !prev)}
               >
-                {showAnswers ? 'Hide Answers' : 'Show Answers'}
+                {showAnswers ? 'Hide' : 'Show'}
               </button>
             </div>
             <div className="space-y-4">
               {quiz.questions?.map((question, idx) => (
-                <div key={question.id || idx} className="rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 p-4">
+                <div key={question.id || idx} className="rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 p-3 md:p-4">
                   <div className="flex items-center justify-between">
-                    <p className="text-xs font-semibold uppercase text-gray-400">Question {idx + 1}</p>
-                    <span className="text-[10px] px-2 py-1 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500">
+                    <p className="text-[10px] font-semibold uppercase text-gray-400">Q{idx + 1}</p>
+                    <span className="text-[9px] px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500">
                       {question.difficulty || 'medium'}
                     </span>
                   </div>
-                  <p className="mt-2 text-sm font-medium dark:text-white">{question.question}</p>
+                  <p className="mt-2 text-sm font-medium dark:text-white leading-relaxed">{question.question}</p>
                   {question.options?.length ? (
-                    <ul className="mt-3 space-y-1 text-sm text-gray-600 dark:text-gray-300">
+                    <ul className="mt-3 space-y-1.5 text-xs md:text-sm text-gray-600 dark:text-gray-300">
                       {question.options.map((option, optionIdx) => (
-                        <li key={`${question.id || idx}-option-${optionIdx}`}>
-                          {option}
+                        <li key={`${question.id || idx}-option-${optionIdx}`} className="flex gap-2">
+                          <span className="opacity-40">•</span> {option}
                         </li>
                       ))}
                     </ul>
                   ) : null}
                   {showAnswers && (
-                    <div className="mt-3 rounded-lg bg-gray-50 dark:bg-gray-800/60 px-3 py-2 text-xs text-gray-600 dark:text-gray-300">
-                      <p><span className="font-semibold">Answer:</span> {question.answer}</p>
-                      <p className="mt-1"><span className="font-semibold">Why:</span> {question.explanation}</p>
+                    <div className="mt-3 rounded-lg bg-gray-50 dark:bg-gray-800/60 px-3 py-2 text-[11px] text-gray-600 dark:text-gray-300">
+                      <p><span className="font-semibold text-academic-600 dark:text-academic-400">Answer:</span> {question.answer}</p>
+                      <p className="mt-1 opacity-80">{question.explanation}</p>
                     </div>
                   )}
                 </div>
@@ -231,23 +231,23 @@ const ChatInterface = ({ activeDoc, provider }) => {
             key={msg.id}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className={`flex items-start gap-4 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}
+            className={`flex items-start gap-2 md:gap-4 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}
           >
             <div className={`
-              w-8 h-8 rounded-lg flex items-center justify-center shrink-0
+              w-7 h-7 md:w-8 md:h-8 rounded-lg flex items-center justify-center shrink-0 mt-1
               ${msg.role === 'user' ? 'bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400' : 'bg-academic-100 dark:bg-academic-500/20 text-academic-600 dark:text-academic-400'}
             `}>
-              {msg.role === 'user' ? <User size={18} /> : <Sparkles size={16} />}
+              {msg.role === 'user' ? <User size={16} /> : <Sparkles size={14} />}
             </div>
             
             <div className={`
-              max-w-[85%] px-4 py-3 rounded-2xl text-sm leading-relaxed
+              max-w-[90%] md:max-w-[85%] px-3 md:px-4 py-2 md:py-3 rounded-2xl text-sm leading-relaxed
               ${msg.role === 'user' 
                 ? 'bg-indigo-600 text-white rounded-tr-none' 
                 : 'bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 rounded-tl-none border border-gray-200 dark:border-gray-800'}
             `}>
               {msg.content}
-              <div className={`text-[10px] mt-2 opacity-60 ${msg.role === 'user' ? 'text-white' : 'text-gray-500'}`}>
+              <div className={`text-[9px] mt-2 opacity-60 ${msg.role === 'user' ? 'text-white' : 'text-gray-500'}`}>
                 {msg.timestamp}
               </div>
             </div>
@@ -257,11 +257,11 @@ const ChatInterface = ({ activeDoc, provider }) => {
       </div>
 
       {/* Input Area */}
-      <div className="p-6 pt-0">
+      <div className="p-4 md:p-6 pt-0 shrink-0 bg-white dark:bg-[#0a0a0a]">
         <div className="relative group">
           <div className="absolute inset-0 bg-academic-500/10 blur-xl rounded-full opacity-0 group-focus-within:opacity-100 transition-opacity pointer-events-none"></div>
-          <div className="relative flex items-center gap-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-2 transition-all group-focus-within:border-academic-500/50 group-focus-within:ring-2 group-focus-within:ring-academic-500/10">
-            <button className="p-2 text-gray-400 hover:text-academic-500 transition-colors">
+          <div className="relative flex items-center gap-1.5 md:gap-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-1.5 md:p-2 transition-all group-focus-within:border-academic-500/50 group-focus-within:ring-2 group-focus-within:ring-academic-500/10">
+            <button className="hidden sm:block p-2 text-gray-400 hover:text-academic-500 transition-colors">
               <Paperclip size={18} />
             </button>
             <input 
@@ -269,17 +269,14 @@ const ChatInterface = ({ activeDoc, provider }) => {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-              placeholder="Ask anything about your document..." 
-              className="flex-1 bg-transparent border-none outline-none text-sm py-2 dark:text-white"
+              placeholder="Ask anything..." 
+              className="flex-1 bg-transparent border-none outline-none text-sm py-2 dark:text-white min-w-0"
             />
-            <button className="p-2 text-gray-400 hover:text-academic-500 transition-colors">
-              <Smile size={18} />
-            </button>
             <button 
               onClick={handleSend}
               disabled={!input.trim() || isSending}
               className={`
-                p-2.5 rounded-xl transition-all
+                p-2 md:p-2.5 rounded-xl transition-all shrink-0
                 ${input.trim() && !isSending
                   ? 'bg-academic-600 text-white shadow-lg shadow-academic-500/20 active:scale-95' 
                   : 'bg-gray-200 dark:bg-gray-800 text-gray-400 dark:text-gray-600'}
